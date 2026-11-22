@@ -1,0 +1,12 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#102e2b"><title>Ventáfera • O Coração das Ilhas</title><link rel="icon" href="./assets/mark.svg"><link rel="stylesheet" href="./css/style.css"></head><body>
+<main id="app">
+<section id="menu" aria-label="Menu principal">
+<header><img src="./assets/mark.svg" alt=""><b>ATLAS DAS ILHAS</b><i></i><span>COSTA DAS CASCATAS</span></header>
+<div class="title"><div class="eyebrow"><i></i> UMA AVENTURA EM DUPLA</div><h1>Ventáfera</h1><p class="subtitle">O Coração das Ilhas</p><div class="actions"><button id="start" class="primary">Iniciar aventura <b>➜</b></button><button id="resume" class="secondary" hidden>Continuar do marco</button><div class="tools"><button id="guide">Como jogar</button><em> / </em><button id="options">Opções</button></div></div></div>
+<footer><div><span class="diamond">◇</span> <b>01</b> <i></i> Trilha das Conchas</div><small id="record">CAPÍTULO I</small></footer></section>
+<section id="stage" hidden aria-label="Trilha das Conchas"><canvas id="view" width="960" height="540" aria-label="Jogo de plataforma com Nira e Boro"></canvas>
+<div class="hud"><img id="portrait" alt=""><div><strong id="heroName"></strong><div id="hearts"></div></div><i></i><span class="fruit">●</span><b id="fruit"></b><span class="glyph">◇</span><b id="glyph"></b></div>
+<button id="pause" aria-label="Pausar">Ⅱ</button><div id="toast" role="status"></div><div id="hint"></div>
+<div id="touch"><div><button data-key="left" aria-label="Esquerda">◀</button><button data-key="right" aria-label="Direita">▶</button></div><div><button data-key="swap" aria-label="Trocar">⇄</button><button data-key="action" aria-label="Ação especial">✧</button><button data-key="roll" aria-label="Rolar">↻</button><button data-key="jump" aria-label="Pular">↑</button></div></div></section>
+<dialog id="panel"><div id="panelContent"></div></dialog></main>
+<script defer src="./js/level.js"></script><script defer src="./js/audio.js"></script><script defer src="./js/world.js"></script><script defer src="./js/art.js"></script><script defer src="./js/main.js"></script></body></html>
