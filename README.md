@@ -23,3 +23,7 @@ Alcance o farol. Quatro glifos e dois selos recompensam a exploração. O marco 
 - assets/ — ilustrações e sprites WebP criados para esta edição e emblema vetorial
 
 Edição independente da primeira fase, com apresentação ilustrada em camadas. Não requer compilação ou serviços externos.
+
+## Fase 1-2 • Cascata Escondida
+Ao concluir a Trilha das Conchas, escolha **Próxima fase**. No menu, **Fases** permite entrar diretamente em qualquer uma das duas. Cada fase guarda seu próprio marco e melhor tempo. O marco da edição anterior da Trilha das Conchas é importado automaticamente.
+Na Cascata Escondida, atravesse os tocos oscilantes e alcance a nascente. Depois do marco, os frutos sobem em direção a uma fenda seca. Segure o salto com Nira para planar por trás da cortina de água. O leito inferior oferece uma travessia alternativa para os dois heróis. O mapa e os efeitos de água da segunda fase estão em js/cascata.js.

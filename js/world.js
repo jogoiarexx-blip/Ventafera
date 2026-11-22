@@ -5,7 +5,7 @@ class World{
   this.emit=emit;this.t=0;this.camera=0;this.sector=-1;this.hp=3;this.hero=save?.hero==='Boro'?'Boro':'Nira';this.collected=new Set((save?.items||[]).filter(i=>Number.isInteger(i)&&loot[i]));this.check=!!save;this.checkSave=save;this.elapsed=save?.time||0;this.charge=0;this.echo=0;this.used=new Set();this.over=false;
   this.foes=LEVEL.foes.map(([x,range,type],i)=>({home:x,range,type,x,y:baseY(x),dead:false,phase:i*1.7,dir:1,warning:0,attack:0,rest:0}));this.sparks=[];this.spawn()
  }
- spawn(){this.x=this.check?LEVEL.checkpoint:110;this.y=baseY(this.x);this.vx=this.vy=0;this.face=1;this.floor=LEVEL.surfaces.find(s=>this.x>=s.a&&this.x<=s.b);this.coyote=.1;this.jumpBuffer=this.roll=this.cool=this.inv=this.throwLock=0;this.glide=1;this.camera=clamp(this.x-320,0,7600);this.px=this.x;this.py=this.y;this.pc=this.camera;this.squash=0;this.trail=[];this.pal={x:this.x-64,y:this.y,face:1};this.zoneHint=''}
+ spawn(){this.x=this.check?LEVEL.checkpoint:110;this.y=baseY(this.x);this.vx=this.vy=0;this.face=1;this.floor=LEVEL.surfaces.find(s=>this.x>=s.a&&this.x<=s.b);this.coyote=.1;this.jumpBuffer=this.roll=this.cool=this.inv=this.throwLock=0;this.glide=1;this.camera=clamp(this.x-320,0,LEVEL.end-760);this.px=this.x;this.py=this.y;this.pc=this.camera;this.squash=0;this.trail=[];this.pal={x:this.x-64,y:this.y,face:1};this.zoneHint=''}
  burst(x,y,color,n=12){for(let i=0;i<n;i++){let a=Math.random()*Math.PI*2,v=35+Math.random()*110;this.sparks.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-34,life:.35+Math.random()*.35,color})}}
  count(type){return [...this.collected].filter(i=>loot[i].type===type).length}
  snapshot(){return {level:LEVEL.id,hero:this.hero,items:[...this.collected],time:this.elapsed}}
@@ -56,7 +56,7 @@ class World{
   let sector=LEVEL.sections.findLastIndex(s=>this.x>=s[0]);if(sector>this.sector){this.sector=sector;this.emit('sector',LEVEL.sections[sector][1])}
   this.zoneHint=mark?'✧  '+(this.charge>=30?'Ativar ressonância':'Arremessar parceiro'):'';
   this.trail.push({x:this.x,y:this.y,face:this.face});if(this.trail.length>17){const p=this.trail.shift();this.pal.x+=(p.x-this.face*40-this.pal.x)*.14;this.pal.y+=(p.y-this.pal.y)*.19;this.pal.face=p.face}
-  const aim=clamp(this.x-355+this.vx*.19,0,8550-960);this.camera+=(aim-this.camera)*.065;
+  const aim=clamp(this.x-355+this.vx*.19,0,LEVEL.end-760);this.camera+=(aim-this.camera)*.065;
   for(const p of this.sparks){p.x+=p.vx*STEP;p.y+=p.vy*STEP;p.vy+=180*STEP;p.life-=STEP}this.sparks=this.sparks.filter(p=>p.life>0);
   if(this.x>=LEVEL.end){this.over=true;this.emit('win')}
  }

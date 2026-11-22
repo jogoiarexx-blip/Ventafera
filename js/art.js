@@ -1,5 +1,5 @@
 'use strict';
-const assets={};for(const name of ['coast','cavern','tree','tower','flowers','sand','stone','bark','rock','beetle0','beetle1','crab0','crab1',...['nira','boro'].flatMap(n=>[0,1,2,3].map(i=>n+i))]){const im=new Image();im.src='./assets/'+name+'.webp';assets[name]=im}
+const assets={};for(const name of ['falls','coast','cavern','tree','tower','flowers','sand','stone','bark','rock','beetle0','beetle1','crab0','crab1',...['nira','boro'].flatMap(n=>[0,1,2,3].map(i=>n+i))]){const im=new Image();im.src='./assets/'+name+'.webp';assets[name]=im}
 function rng(seed){return ()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296}}
 function shape(c,points,fill){c.fillStyle=fill;c.beginPath();points.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.closePath();c.fill()}
 function oval(c,x,y,a,b,fill,rot=0){c.fillStyle=fill;c.beginPath();c.ellipse(x,y,a,b,rot,0,Math.PI*2);c.fill()}
@@ -53,19 +53,19 @@ function beacon(c,x,y,active,t,large=false){
 function render(c,w,alpha,reduced){
  const t=w.t,cam=w.pc+(w.camera-w.pc)*alpha,x=w.px+(w.x-w.px)*alpha,y=w.py+(w.y-w.py)*alpha;
  c.setTransform(c.canvas.width/960,0,0,c.canvas.height/540,0,0);c.clearRect(0,0,960,540);
- const bg=assets.coast;if(bg.naturalWidth){const wide=1380,off=cam/(8550-960)*(wide-960);c.drawImage(bg,-off,-100,wide,777)}else{c.fillStyle='#80bea7';c.fillRect(0,0,960,540)}
+ const falls=LEVEL===CASCATA;const bg=falls?assets.falls:assets.coast;if(bg.naturalWidth){const wide=1380,off=cam/(LEVEL.end-760)*(wide-960);c.drawImage(bg,-off,-100,wide,777)}else{c.fillStyle='#80bea7';c.fillRect(0,0,960,540)}
  // Painted haze and two independently moving layers of sea and foliage.
  let sea=c.createLinearGradient(0,443,0,540);sea.addColorStop(0,'#42aaa8b0');sea.addColorStop(1,'#134f59');c.fillStyle=sea;c.fillRect(0,463,960,77);
  for(let i=0;i<47;i++){let yy=466+(i*37)%78,xx=((i*113-cam*.46+t*(i%3+1)*3)%1050+1050)%1050-55;stroke(c,[[xx,yy],[xx+12,yy-1],[xx+24+i%14,yy]],'#daf5d66b',1.3)}
  for(let i=0;i<4;i++){let bx=(900+i*33+t*9-cam*.09)%1090,by=84+Math.sin(t*.9+i)*3+i%2*9;stroke(c,[[bx-5,by-2],[bx,by+1],[bx+5,by-2]],'#436a635f',1.3)}
- const dark=clamp(1-Math.abs(x-3660)/570,0,1);if(dark&&assets.cavern.naturalWidth){c.globalAlpha=dark;c.drawImage(assets.cavern,-(x-3090)*.12,-35,1140,645);c.globalAlpha=1}else if(dark){c.fillStyle='rgba(8,34,42,'+dark*.67+')';c.fillRect(0,0,960,540)}
+ const dark=falls?0:clamp(1-Math.abs(x-3660)/570,0,1);if(dark&&assets.cavern.naturalWidth){c.globalAlpha=dark;c.drawImage(assets.cavern,-(x-3090)*.12,-35,1140,645);c.globalAlpha=1}else if(dark){c.fillStyle='rgba(8,34,42,'+dark*.67+')';c.fillRect(0,0,960,540)}
  c.save();c.translate(-cam,0);
  for(let i=Math.max(0,Math.floor(cam/194)-1);i<(cam+1100)/194;i++){
  let xx=i*194+Math.sin(i*5)*57,yy=484+Math.sin(i)*16;frond(c,xx,yy,1.25+Math.sin(i)*.44,i%2?1:-1,['#366e67','#578678'])}
- if(!assets.cavern.naturalWidth&&cam<4160&&cam+960>3150){for(let i=0;i<18;i++){let xx=3180+i*54,yy=54+52*Math.sin(i*.7);shape(c,[[xx-90,-20],[xx+80,-20],[xx+57,yy],[xx+19,yy+30],[xx-19,yy+7]],i%2?'#254f4b':'#325954');if(i%3===0){stroke(c,[[xx,yy],[xx+7,yy+34],[xx,yy+67]],'#4d806d',3);oval(c,xx,yy+67,3,4,'#a2e3be')}}}
+ if(!falls&&!assets.cavern.naturalWidth&&cam<4160&&cam+960>3150){for(let i=0;i<18;i++){let xx=3180+i*54,yy=54+52*Math.sin(i*.7);shape(c,[[xx-90,-20],[xx+80,-20],[xx+57,yy],[xx+19,yy+30],[xx-19,yy+7]],i%2?'#254f4b':'#325954');if(i%3===0){stroke(c,[[xx,yy],[xx+7,yy+34],[xx,yy+67]],'#4d806d',3);oval(c,xx,yy+67,3,4,'#a2e3be')}}}
  for(const sx of LEVEL.wind){if(Math.abs(sx-cam-480)>575)continue;for(let j=0;j<6;j++){let yy=455-((t*73+j*34)%210);c.beginPath();c.moveTo(sx-16,yy);c.bezierCurveTo(sx+32,yy-8,sx-26,yy-21,sx+6,yy-37);c.strokeStyle='#d5ffe3a0';c.lineWidth=2;c.stroke()}}
  function prop(name,px,py,height,flip=false){let im=assets[name];if(!im.naturalWidth||Math.abs(px-cam-480)>1050)return;let width=height*im.width/im.height;c.save();c.translate(px,py);if(flip)c.scale(-1,1);c.drawImage(im,-width*.5,-height,width,height);c.restore()}
- prop('tree',-60,430,300);prop('tree',1210,375,255,true);prop('tree',2990,408,190);prop('tree',6410,326,173,true);prop('tower',8370,baseY(8370)+2,242);
+ if(falls){prop('tree',350,baseY(350),230,true);prop('tree',3550,baseY(3550),235);prop('tree',7220,baseY(7220),300);for(const [px,ww] of [[1120,63],[2700,105],[5780,80]])if(px>cam-150&&px<cam+970)waterCurtain(c,px,ww,-10,477,t,.48,reduced)}else{prop('tree',-60,430,300);prop('tree',1210,375,255,true);prop('tree',2990,408,190);prop('tree',6410,326,173,true);prop('tower',8370,baseY(8370)+2,242);}
  for(const px of [52,615,1010,1640,2140,2920,4100,4510,5080,5690,6370,7480,7980])prop('flowers',px,baseY(px)+2,35+(px%19),!!(px%3));
  for(const s of LEVEL.surfaces){if(s.b<cam-20||s.a>cam+980||s.type==='echo'&&!w.echo)continue;if(!terrainCache.has(s.i))terrainCache.set(s.i,terrain(s));c.save();c.translate(s.a,surfaceY(s,s.a,t));if(s.type==='swing')c.transform(1,Math.sin(t*1.8)*.055,0,1,0,0);c.drawImage(terrainCache.get(s.i),-8,-80);c.restore()}
  // Etched ancient windstones and the shell lighthouse.
@@ -74,6 +74,7 @@ function render(c,w,alpha,reduced){
  loot.forEach((p,i)=>{if(w.collected.has(i)||p.x<cam-20||p.x>cam+980)return;let yy=p.y+Math.sin(t*2.7+i)*3,xx=p.x;if(p.type==='fruit'){oval(c,xx,yy,6.2,7.7,'#993e32',.22);oval(c,xx-1,yy-2,5.6,6,'#ffb34f',.22);oval(c,xx+3,yy-8,4.8,2,'#35785b',-.65);oval(c,xx-2,yy-4,1.4,2,'#ffe4a1')}else{oval(c,xx,yy,19,19,'#b5ffcf33');if(p.type==='seal')shell(c,xx,yy,1.2,'#ffe2a2');else{shape(c,[[xx,yy-14],[xx+10,yy],[xx,yy+14],[xx-10,yy]],'#1b7972');stroke(c,[[xx,yy-12],[xx+8,yy],[xx,yy+12],[xx-8,yy],[xx,yy-12]],'#ccfee4',2);stroke(c,[[xx-2,yy+4],[xx+2,yy-4]],'#fff0b4',2)}}});
  for(const f of w.foes)if(!f.dead&&f.x>=cam-40&&f.x<=cam+1000)creature(c,f,t);
  heroArt(c,w.hero==='Nira'?'Boro':'Nira',w.pal.x,w.pal.y,w.pal.face,w.vx,!w.floor,false,t-.17,.76);
+ if(falls&&cam<4810&&cam+960>4410){const hidden=Math.abs(x-4550)<170&&y<310;waterCurtain(c,4410,310,-10,443,t,hidden?.16:.77,reduced)}
  if(w.over){for(let i=0;i<22;i++){let a=i*2.399,phase=(w.celebration||0)*1.7;oval(c,LEVEL.end+Math.cos(a)*phase*58,baseY(LEVEL.end)-110+Math.sin(a)*phase*44-phase*20,2.3,3.8,i%2?'#ffdf96':'#a4f2ce',a)}}
  if(w.floor)oval(c,x,y+1,22,3.5,'#19363065');
  c.globalAlpha=w.inv>0&&Math.floor(t*12)%2?.5:1;heroArt(c,w.hero,x,y,w.face,w.vx,!w.floor,w.roll>0,t,1,w.squash);c.globalAlpha=1;
