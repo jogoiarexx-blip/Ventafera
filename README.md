@@ -27,3 +27,9 @@ Edição independente da primeira fase, com apresentação ilustrada em camadas.
 ## Fase 1-2 • Cascata Escondida
 Ao concluir a Trilha das Conchas, escolha **Próxima fase**. No menu, **Fases** permite entrar diretamente em qualquer uma das duas. Cada fase guarda seu próprio marco e melhor tempo. O marco da edição anterior da Trilha das Conchas é importado automaticamente.
 Na Cascata Escondida, atravesse os tocos oscilantes e alcance a nascente. Depois do marco, os frutos sobem em direção a uma fenda seca. Segure o salto com Nira para planar por trás da cortina de água. O leito inferior oferece uma travessia alternativa para os dois heróis. O mapa e os efeitos de água da segunda fase estão em js/cascata.js.
+
+## Controles e leitura da travessia
+A sombra acompanha a superfície logo abaixo do herói. É possível apertar a rolagem até 140 ms antes de pousar. Nira abre o poncho na planagem e Boro abaixa o ombro durante a investida. Passos e aterrissagens variam com o herói e o piso. Na seleção de fases, cada cartão mostra os melhores totais de glifos e selos obtidos nas travessias concluídas a partir desta edição.
+
+## Rotas da dupla
+Na Trilha das Conchas, procure a pedra rachada na entrada da gruta e os anéis acima da Ponte Viva. Na Cascata Escondida, a pedra fica depois dos primeiros tocos e os anéis sinalizam a travessia da fenda. Invista com Boro para liberar a rampa. Com Nira, atravesse os anéis enquanto plana para recuperar altura. Saltar durante uma rolagem preserva parte da velocidade. Cada fase tem três marcos automáticos. Os salvamentos anteriores retomam no marco central.

@@ -1,5 +1,5 @@
 'use strict';
-const assets={};for(const name of ['falls','coast','cavern','tree','tower','flowers','sand','stone','bark','rock','beetle0','beetle1','crab0','crab1',...['nira','boro'].flatMap(n=>[0,1,2,3].map(i=>n+i))]){const im=new Image();im.src='./assets/'+name+'.webp';assets[name]=im}
+const assets={};for(const name of ['glide','charge','falls','coast','cavern','tree','tower','flowers','sand','stone','bark','rock','beetle0','beetle1','crab0','crab1',...['nira','boro'].flatMap(n=>[0,1,2,3].map(i=>n+i))]){const im=new Image();im.src='./assets/'+name+'.webp';assets[name]=im}
 function rng(seed){return ()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296}}
 function shape(c,points,fill){c.fillStyle=fill;c.beginPath();points.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.closePath();c.fill()}
 function oval(c,x,y,a,b,fill,rot=0){c.fillStyle=fill;c.beginPath();c.ellipse(x,y,a,b,rot,0,Math.PI*2);c.fill()}
@@ -8,6 +8,20 @@ function frond(c,x,y,size,flip,colors){
  c.save();c.translate(x,y);c.scale(flip*size,size);let p=[[0,0],[10,-12],[25,-21],[45,-24],[57,-23]];stroke(c,p,colors[0],1.7);
  for(let i=1;i<=8;i++){let u=i/9,xx=u*55,yy=-Math.sin(u*1.65)*23,l=Math.sin(u*Math.PI)*15+3;
  shape(c,[[xx-4,yy+2],[xx+2,yy-l],[xx+9,yy-l-4],[xx+4,yy-2]],colors[1]);shape(c,[[xx,yy],[xx+12,yy+2],[xx+16,yy+l*.7],[xx+5,yy+5]],colors[0])}c.restore()
+}
+// Rasterize recurring fronds once; animate the painted layer with a small sway.
+const foliageTiles=new Map();
+function foliage(c,x,y,size,flip,near,t,reduced){
+ let tile=foliageTiles.get(near);
+ if(!tile){
+   tile=document.createElement('canvas');tile.width=144;tile.height=104;
+   const brush=tile.getContext('2d');brush.scale(2,2);
+   frond(brush,4,46,1,1,near?['#154841','#29614e']:['#366e67','#578678']);
+   foliageTiles.set(near,tile);
+ }
+ c.save();c.translate(x,y);c.scale(flip*size,size);
+ if(!reduced)c.rotate(Math.sin(t*1.35+x*.002)*.033);
+ c.drawImage(tile,-4,-46,72,52);c.restore();
 }
 function terrain(s){
  const len=s.b-s.a, oy=80, cvs=document.createElement('canvas');cvs.width=len+16;cvs.height=340;const c=cvs.getContext('2d'),rand=rng(201+s.i*477);c.translate(8,oy);
@@ -29,10 +43,10 @@ function terrain(s){
 }
 const terrainCache=new Map();
 for(const n of ['bark','sand','stone','rock'])assets[n].addEventListener?.('load',()=>terrainCache.clear());
-function heroArt(c,name,x,y,dir,v,air,rolling,t,scale=1,land=0){
- const moving=Math.abs(v)>12,frame=air?3:moving?1+(Math.floor(t*(Math.abs(v)>350?13:9))%2):0,im=assets[name.toLowerCase()+frame];if(!im?.naturalWidth)return;
- let h=(name==='Boro'?76:68)*(frame===1?.90:1),w=im.width*h/im.height;
- c.save();c.translate(x,y);c.scale(dir*scale,scale);if(rolling&&name==='Nira'){c.translate(0,-24);c.rotate(t*18*dir);c.scale(.78,.72);c.translate(0,26)}else if(rolling)c.transform(1,0,.12,.81,0,0);
+function heroArt(c,name,x,y,dir,v,air,rolling,t,scale=1,land=0,gliding=false){
+ const moving=Math.abs(v)>12,frame=air?3:moving?1+(Math.floor(t*(Math.abs(v)>350?13:9))%2):0,pose=gliding?'glide':rolling&&name==='Boro'?'charge':null,im=pose&&assets[pose].naturalWidth?assets[pose]:assets[name.toLowerCase()+frame];if(!im?.naturalWidth)return;
+ let h=(name==='Boro'?76:68)*(gliding?.78:pose==='charge'?.77:frame===1?.90:1),w=im.width*h/im.height;
+ c.save();c.translate(x,y);c.scale(dir*scale,scale);if(rolling&&name==='Nira'){c.translate(0,-24);c.rotate(t*18*dir);c.scale(.78,.72);c.translate(0,26)}else if(rolling&&!pose)c.transform(1,0,.12,.81,0,0);
  let bob=moving&&!air?Math.sin(t*18)*1.8:Math.sin(t*3)*.65;c.scale(1+land*.68,1-land*.7);c.drawImage(im,-w*.58,-h+bob,w,h);c.restore()
 }
 function creature(c,f,t){
@@ -61,24 +75,34 @@ function render(c,w,alpha,reduced){
  const dark=falls?0:clamp(1-Math.abs(x-3660)/570,0,1);if(dark&&assets.cavern.naturalWidth){c.globalAlpha=dark;c.drawImage(assets.cavern,-(x-3090)*.12,-35,1140,645);c.globalAlpha=1}else if(dark){c.fillStyle='rgba(8,34,42,'+dark*.67+')';c.fillRect(0,0,960,540)}
  c.save();c.translate(-cam,0);
  for(let i=Math.max(0,Math.floor(cam/194)-1);i<(cam+1100)/194;i++){
- let xx=i*194+Math.sin(i*5)*57,yy=484+Math.sin(i)*16;frond(c,xx,yy,1.25+Math.sin(i)*.44,i%2?1:-1,['#366e67','#578678'])}
+ let xx=i*194+Math.sin(i*5)*57,yy=484+Math.sin(i)*16;foliage(c,xx,yy,1.25+Math.sin(i)*.44,i%2?1:-1,false,t,reduced)}
  if(!falls&&!assets.cavern.naturalWidth&&cam<4160&&cam+960>3150){for(let i=0;i<18;i++){let xx=3180+i*54,yy=54+52*Math.sin(i*.7);shape(c,[[xx-90,-20],[xx+80,-20],[xx+57,yy],[xx+19,yy+30],[xx-19,yy+7]],i%2?'#254f4b':'#325954');if(i%3===0){stroke(c,[[xx,yy],[xx+7,yy+34],[xx,yy+67]],'#4d806d',3);oval(c,xx,yy+67,3,4,'#a2e3be')}}}
  for(const sx of LEVEL.wind){if(Math.abs(sx-cam-480)>575)continue;for(let j=0;j<6;j++){let yy=455-((t*73+j*34)%210);c.beginPath();c.moveTo(sx-16,yy);c.bezierCurveTo(sx+32,yy-8,sx-26,yy-21,sx+6,yy-37);c.strokeStyle='#d5ffe3a0';c.lineWidth=2;c.stroke()}}
  function prop(name,px,py,height,flip=false){let im=assets[name];if(!im.naturalWidth||Math.abs(px-cam-480)>1050)return;let width=height*im.width/im.height;c.save();c.translate(px,py);if(flip)c.scale(-1,1);c.drawImage(im,-width*.5,-height,width,height);c.restore()}
  if(falls){prop('tree',350,baseY(350),230,true);prop('tree',3550,baseY(3550),235);prop('tree',7220,baseY(7220),300);for(const [px,ww] of [[1120,63],[2700,105],[5780,80]])if(px>cam-150&&px<cam+970)waterCurtain(c,px,ww,-10,477,t,.48,reduced)}else{prop('tree',-60,430,300);prop('tree',1210,375,255,true);prop('tree',2990,408,190);prop('tree',6410,326,173,true);prop('tower',8370,baseY(8370)+2,242);}
- for(const px of [52,615,1010,1640,2140,2920,4100,4510,5080,5690,6370,7480,7980])prop('flowers',px,baseY(px)+2,35+(px%19),!!(px%3));
- for(const s of LEVEL.surfaces){if(s.b<cam-20||s.a>cam+980||s.type==='echo'&&!w.echo)continue;if(!terrainCache.has(s.i))terrainCache.set(s.i,terrain(s));c.save();c.translate(s.a,surfaceY(s,s.a,t));if(s.type==='swing')c.transform(1,Math.sin(t*1.8)*.055,0,1,0,0);c.drawImage(terrainCache.get(s.i),-8,-80);c.restore()}
+ for(const px of [52,615,1010,1640,2140,2920,4100,4510,5080,5690,6370,7480,7980])if(LEVEL.surfaces.some(s=>px>=s.a&&px<=s.b))prop('flowers',px,baseY(px)+2,35+(px%19),!!(px%3));
+ for(const s of LEVEL.surfaces){if(s.b<cam-20||s.a>cam+980||!openSurface(w,s))continue;if(!terrainCache.has(s.i))terrainCache.set(s.i,terrain(s));c.save();c.translate(s.a,surfaceY(s,s.a,t));if(s.type==='swing')c.transform(1,Math.sin(t*1.8)*.055,0,1,0,0);c.drawImage(terrainCache.get(s.i),-8,-80);c.restore()}
+ drawPassages(c,w,cam);
  // Etched ancient windstones and the shell lighthouse.
  for(const m of LEVEL.marks){if(Math.abs(m-cam-480)<530){let yy=baseY(m);shape(c,[[m-16,yy],[m-10,yy-40],[m+5,yy-46],[m+15,yy-3]],'#426f63');c.fillStyle='#bcf0c6';c.font='21px Georgia';c.fillText('✧',m-8,yy-16)}}
- beacon(c,LEVEL.checkpoint,baseY(LEVEL.checkpoint),w.check,t);beacon(c,LEVEL.end,baseY(LEVEL.end),true,t,true);
+ for(const point of LEVEL.checkpoints)if(point>cam-35&&point<cam+995)beacon(c,point,baseY(point),w.respawnX>=point,t);beacon(c,LEVEL.end,baseY(LEVEL.end),true,t,true);
  loot.forEach((p,i)=>{if(w.collected.has(i)||p.x<cam-20||p.x>cam+980)return;let yy=p.y+Math.sin(t*2.7+i)*3,xx=p.x;if(p.type==='fruit'){oval(c,xx,yy,6.2,7.7,'#993e32',.22);oval(c,xx-1,yy-2,5.6,6,'#ffb34f',.22);oval(c,xx+3,yy-8,4.8,2,'#35785b',-.65);oval(c,xx-2,yy-4,1.4,2,'#ffe4a1')}else{oval(c,xx,yy,19,19,'#b5ffcf33');if(p.type==='seal')shell(c,xx,yy,1.2,'#ffe2a2');else{shape(c,[[xx,yy-14],[xx+10,yy],[xx,yy+14],[xx-10,yy]],'#1b7972');stroke(c,[[xx,yy-12],[xx+8,yy],[xx,yy+12],[xx-8,yy],[xx,yy-12]],'#ccfee4',2);stroke(c,[[xx-2,yy+4],[xx+2,yy-4]],'#fff0b4',2)}}});
  for(const f of w.foes)if(!f.dead&&f.x>=cam-40&&f.x<=cam+1000)creature(c,f,t);
- heroArt(c,w.hero==='Nira'?'Boro':'Nira',w.pal.x,w.pal.y,w.pal.face,w.vx,!w.floor,false,t-.17,.76);
+ heroArt(c,w.hero==='Nira'?'Boro':'Nira',w.pal.x,w.pal.y,w.pal.face,w.pal.vx||0,w.pal.air,false,t-.17,.76);
  if(falls&&cam<4810&&cam+960>4410){const hidden=Math.abs(x-4550)<170&&y<310;waterCurtain(c,4410,310,-10,443,t,hidden?.16:.77,reduced)}
  if(w.over){for(let i=0;i<22;i++){let a=i*2.399,phase=(w.celebration||0)*1.7;oval(c,LEVEL.end+Math.cos(a)*phase*58,baseY(LEVEL.end)-110+Math.sin(a)*phase*44-phase*20,2.3,3.8,i%2?'#ffdf96':'#a4f2ce',a)}}
- if(w.floor)oval(c,x,y+1,22,3.5,'#19363065');
- c.globalAlpha=w.inv>0&&Math.floor(t*12)%2?.5:1;heroArt(c,w.hero,x,y,w.face,w.vx,!w.floor,w.roll>0,t,1,w.squash);c.globalAlpha=1;
+ let below=Infinity;
+ for(const s of LEVEL.surfaces){
+   if(x<s.a||x>s.b||!openSurface(w,s))continue;
+   const ground=surfaceY(s,x,t);if(ground>=y-3)below=Math.min(below,ground)
+ }
+ if(below-y<190){let strength=clamp(1-(below-y)/200,.1,1);c.globalAlpha=.15+.35*strength;oval(c,x,below+2,10+12*strength,2+2*strength,'#132d29');c.globalAlpha=1}
+ if(w.gliding&&!reduced){for(let i=0;i<3;i++){
+   let ox=x-w.face*(28+i*9),oy=y-33+i*6+Math.sin(t*8+i)*2;
+   stroke(c,[[ox,oy],[ox-w.face*19,oy+1],[ox-w.face*30,oy-1]],'#dfffeaa0',1.5)
+ }}
+ c.globalAlpha=w.inv>0&&Math.floor(t*12)%2?.5:1;heroArt(c,w.hero,x,y,w.face,w.vx,!w.floor,w.roll>0,t,1,w.squash,w.gliding);c.globalAlpha=1;
  if(!reduced){for(const p of w.sparks){c.globalAlpha=clamp(p.life*3,0,1);oval(c,p.x,p.y,2.5,1.6,p.color)}c.globalAlpha=1}
  c.restore();
- for(let i=0;i<5;i++){let xx=((i*289-cam*1.13)%1300+1300)%1300-140;frond(c,xx,558,1.5+Math.sin(i)*.25,i%2?1:-1,['#154841','#29614e'])}
+ for(let i=0;i<5;i++){let xx=((i*289-cam*1.13)%1300+1300)%1300-140;foliage(c,xx,558,1.5+Math.sin(i)*.25,i%2?1:-1,true,t,reduced)}
 }
